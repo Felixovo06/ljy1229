@@ -1,68 +1,122 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { 
   Calendar, Star, Clock, UtensilsCrossed, Sparkles, Map as MapIcon,
   ChevronRight, Navigation, Cake, Target, Shield, ExternalLink,
   Activity, AlertCircle, Crosshair, Music, X, RefreshCw, Disc,
   LogIn, UserCheck, Film, Book, Keyboard, FileType, Image as ImageIcon,
   GitBranch, FileText, LayoutGrid, Search, Heart, ArrowRight,
-  Maximize, GraduationCap, Layout, Cpu, Zap, Radio, Box, ShieldCheck
+  Maximize, GraduationCap, Layout, Cpu, Zap, Radio, Box, ShieldCheck,
+  Server, Smartphone, Coffee, Palette, Compass, MousePointer2, Grid3X3,
+  Github, Globe, SearchCode, Command, Send, Ghost, ZapOff
 } from 'lucide-react';
 
 /**
- * --------------------------------------------------------------------
- * 配置数据
- * --------------------------------------------------------------------
+ * 核心配置数据
  */
 const INITIAL_DATA = {
   loveStartDate: "2022-01-12", 
   musicConfig: { playlistId: "8285130451" },
-  importantDates: [
-    { name: "你的生日", date: "2026-12-29", icon: <Cake size={16} /> },
-    { name: "四周年纪念", date: "2026-01-12", icon: <Calendar size={16} /> },
+  fixedDates: [
+    { name: "你的生日", date: "12-29", icon: <Cake size={16} /> },
   ],
   period: { nextStartDate: "2026-03-07", cycleLength: 30 },
-  foodOptions: ["火锅", "螺蛳粉", "麻辣烫", "日料", "烤肉", "汉堡", "轻食", "家里蹲", "湘菜", "意面"],
+  foodOptions: ["火锅", "螺蛳粉", "麻辣烫", "日料", "烤肉", "汉堡", "轻食", "湖南菜", "意面", "喝粥吧"],
   
+  // 搜索引擎配置：已删除 Google，统一使用汉字首字（百、必、哔、抖）
+  searchEngines: [
+    { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s?wd=', color: '#2b32e2', icon: '百', theme: 'shadow-blue-600/50' },
+    { id: 'bing', name: '必应', url: 'https://www.bing.com/search?q=', color: '#00809d', icon: '必', theme: 'shadow-teal-500/50' },
+    { id: 'bilibili', name: 'B站', url: 'https://search.bilibili.com/all?keyword=', color: '#fb7299', icon: '哔', theme: 'shadow-rose-400/50' },
+    { id: 'douyin', name: '抖音', url: 'https://www.douyin.com/search/', color: '#fe2c55', icon: '抖', theme: 'shadow-pink-500/50' }
+  ],
+
   treasureChest: [
-    { name: "猫TV影视", url: "https://tv.cattvv.com", icon: <Film size={18} />, color: "bg-rose-400" },
-    { name: "wikiHow", url: "https://zh.wikihow.com/", icon: <Book size={18} />, color: "bg-emerald-500" },
-    { name: "快捷键大全", url: "https://hotkeycheatsheet.com/zh", icon: <Keyboard size={18} />, color: "bg-blue-500" },
-    { name: "Aconvert", url: "https://www.aconvert.com/cn/", icon: <FileType size={18} />, color: "bg-orange-500" },
-    { name: "思维导图", url: "https://wanglin2.github.io/mind-map/#/", icon: <GitBranch size={18} />, color: "bg-purple-400" },
-    { name: "PDF24", url: "https://tools.pdf24.org/zh/", icon: <FileText size={18} />, color: "bg-red-500" },
+    { name: "猫TV影视", url: "https://tv.cattvv.com", icon: <Film size={20} />, color: "bg-rose-100 text-rose-600 shadow-rose-100" },
+    { name: "生活百科", url: "https://zh.wikihow.com/", icon: <Book size={20} />, color: "bg-emerald-100 text-emerald-600 shadow-emerald-100" },
+    { name: "快捷键", url: "https://hotkeycheatsheet.com/zh", icon: <Keyboard size={20} />, color: "bg-blue-100 text-blue-600 shadow-blue-100" },
+    { name: "格式转换", url: "https://www.aconvert.com/cn/", icon: <FileType size={20} />, color: "bg-orange-100 text-orange-600 shadow-orange-100" },
+    { name: "思维导图", url: "https://wanglin2.github.io/mind-map/#/", icon: <GitBranch size={20} />, color: "bg-purple-100 text-purple-600 shadow-purple-100" },
+    { name: "PDF工具", url: "https://tools.pdf24.org/zh/", icon: <FileText size={20} />, color: "bg-red-100 text-red-600 shadow-red-100" },
   ],
 
   appPortal: [
-    { name: "微信", cat: "社交", url: "https://weixin.qq.com/", color: "bg-green-500" },
+    { name: "微信", cat: "社交", url: "https://weixin.qq.com/", color: "bg-emerald-500" },
     { name: "微博", cat: "社交", url: "https://weibo.com/", color: "bg-red-500" },
     { name: "小红书", cat: "社交", url: "https://www.xiaohongshu.com/", color: "bg-rose-500" },
     { name: "知乎", cat: "社区", url: "https://www.zhihu.com/", color: "bg-blue-600" },
-    { name: "豆瓣", cat: "社区", url: "https://www.douban.com/", color: "bg-green-600" },
     { name: "B站", cat: "娱乐", url: "https://www.bilibili.com/", color: "bg-pink-400" },
-    { name: "抖音", cat: "娱乐", url: "https://www.douyin.com/", color: "bg-zinc-900" },
     { name: "网易云", cat: "音乐", url: "https://music.163.com/", color: "bg-red-600" },
-    { name: "淘宝", cat: "购物", url: "https://www.taobao.com/", color: "bg-orange-500" },
-    { name: "京东", cat: "购物", url: "https://www.jd.com/", color: "bg-red-600" },
-    { name: "拼多多", cat: "购物", url: "https://www.pinduoduo.com/", color: "bg-red-500" },
-    { name: "得物", cat: "购物", url: "https://www.dewu.com/", color: "bg-zinc-900" },
-    { name: "ChatGPT", cat: "AI", url: "https://chatgpt.com/", color: "bg-emerald-600" },
-    { name: "DeepSeek", cat: "AI", url: "https://www.deepseek.com/", color: "bg-blue-900" },
-    { name: "WPS", cat: "办公", url: "https://www.wps.cn/", color: "bg-rose-600" },
-    { name: "Apple", cat: "科技", url: "https://www.apple.com/cn/", color: "bg-zinc-900" },
-    { name: "百度网盘", cat: "存储", url: "https://pan.baidu.com/", color: "bg-blue-600" },
-    { name: "GitHub", cat: "代码", url: "https://github.com/", color: "bg-zinc-900" },
+    { name: "ChatGPT", cat: "智能", url: "https://chatgpt.com/", color: "bg-teal-600" },
+    { name: "飞书", cat: "协作", url: "https://www.feishu.cn/", color: "bg-blue-500" },
+    { name: "美团", cat: "生活", url: "https://www.meituan.com", color: "bg-yellow-500" },
   ]
 };
+
+/**
+ * 全局可爱粒子背景 (樱花 + 星星)
+ */
+function KawaiiParticles() {
+  const [particles, setParticles] = useState([]);
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (Math.random() > 0.1) return;
+      const id = Date.now() + Math.random();
+      const type = Math.random() > 0.5 ? '🌸' : '✨';
+      const newParticle = { id, x: e.clientX, y: e.clientY, char: type, size: Math.random() * 15 + 10 };
+      setParticles(prev => [...prev.slice(-20), newParticle]);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[999] overflow-hidden">
+      <AnimatePresence>
+        {particles.map(p => (
+          <motion.div 
+            key={p.id} 
+            initial={{ opacity: 0, scale: 0, x: p.x, y: p.y }} 
+            animate={{ opacity: [0, 1, 0], scale: [0, 1.2, 0.5], y: p.y - 100, x: p.x + (Math.random() - 0.5) * 50, rotate: 180 }} 
+            transition={{ duration: 2, ease: "easeOut" }} 
+            className="absolute select-none pointer-events-none"
+            style={{ fontSize: p.size }}
+          >
+            {p.char}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AppleTiltCard({ children, className }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 });
+  const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 });
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
+
+  return (
+    <motion.div onMouseMove={(e) => { const rect = e.currentTarget.getBoundingClientRect(); x.set((e.clientX - rect.left) / rect.width - 0.5); y.set((e.clientY - rect.top) / rect.height - 0.5); }} onMouseLeave={() => { x.set(0); y.set(0); }} style={{ rotateX, rotateY, transformStyle: "preserve-3d" }} className={`relative ${className}`}>
+      <div style={{ transform: "translateZ(30px)" }} className="h-full">{children}</div>
+    </motion.div>
+  );
+}
 
 export default function App() {
   const [data] = useState(INITIAL_DATA);
   const [time, setTime] = useState(new Date());
-  const [randomFood, setRandomFood] = useState("吃什么？");
+  const [randomFood, setRandomFood] = useState("今天翻牌哪个？");
   const [isSpinning, setIsSpinning] = useState(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
-  const [playerKey, setPlayerKey] = useState(0); 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeTab, setActiveTab] = useState('skill'); 
   const [appSearch, setAppSearch] = useState("");
+
+  const [isIslandExpanded, setIsIslandExpanded] = useState(false);
+  const [selectedEngine, setSelectedEngine] = useState(data.searchEngines[0]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -70,286 +124,352 @@ export default function App() {
   }, []);
 
   const spinFood = () => {
+    if(isSpinning) return;
     setIsSpinning(true);
     let count = 0;
     const interval = setInterval(() => {
       setRandomFood(data.foodOptions[Math.floor(Math.random() * data.foodOptions.length)]);
-      count++;
-      if (count > 12) {
-        clearInterval(interval);
-        setIsSpinning(false);
-      }
-    }, 80);
+      if (++count > 30) { clearInterval(interval); setIsSpinning(false); }
+    }, 50);
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      window.open(`${selectedEngine.url}${encodeURIComponent(searchQuery)}`, '_blank');
+      setSearchQuery("");
+      setIsIslandExpanded(false);
+    }
+  };
+
+  const loveDays = useMemo(() => Math.floor((new Date() - new Date(data.loveStartDate)) / 86400000), []);
+
+  const dynamicDates = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    let anniv = new Date(`${currentYear}-01-12`);
+    if (now > anniv) anniv = new Date(`${currentYear + 1}-01-12`);
+    const years = anniv.getFullYear() - 2022;
+    return [
+      { name: `${years}周年纪念`, days: Math.ceil((anniv - now) / 86400000), icon: <Star className="text-amber-400" size={16} /> },
+      ...data.fixedDates.map(fd => {
+        let t = new Date(`${currentYear}-${fd.date}`);
+        if (now > t) t = new Date(`${currentYear + 1}-${fd.date}`);
+        return { name: fd.name, days: Math.ceil((t - now) / 86400000), icon: fd.icon };
+      })
+    ].sort((a, b) => a.days - b.days);
+  }, [time]);
+
   const periodInfo = useMemo(() => {
-    const targetDate = new Date(data.period.nextStartDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
-    const progress = Math.max(0, Math.min(100, ((data.period.cycleLength - diffDays) / data.period.cycleLength) * 100));
-    return { nextDate: targetDate.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }), diffDays, progress };
-  }, [data.period, time]);
+    const target = new Date(data.period.nextStartDate);
+    const diff = Math.ceil((target - new Date().setHours(0,0,0,0)) / 86400000);
+    const progress = Math.max(5, Math.min(100, ((data.period.cycleLength - diff) / data.period.cycleLength) * 100));
+    return { date: target.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }), diff, progress };
+  }, [time]);
 
-  const loveDays = useMemo(() => {
-    const start = new Date(data.loveStartDate);
-    return Math.floor((new Date() - start) / (1000 * 60 * 60 * 24));
-  }, [data.loveStartDate, time]);
-
-  const filteredApps = useMemo(() => {
-    return (data.appPortal || []).filter(app => 
-      app.name.toLowerCase().includes(appSearch.toLowerCase()) ||
-      app.cat.toLowerCase().includes(appSearch.toLowerCase())
-    );
-  }, [appSearch, data.appPortal]);
+  const filteredApps = useMemo(() => data.appPortal.filter(app => app.name.toLowerCase().includes(appSearch.toLowerCase())), [appSearch]);
 
   return (
-    <div className="min-h-screen bg-[#f8f9fc] text-[#1a1a1a] font-sans pb-12 overflow-x-hidden selection:bg-pink-100">
+    <div className="min-h-screen bg-[#FFF0F3] text-[#4A4A4A] font-sans selection:bg-rose-200 overflow-x-hidden relative pb-20">
+      <KawaiiParticles />
       
-      {/* --- 浮动播放器 --- */}
-      <div className="w-full flex flex-col items-center sticky top-0 z-[100] pointer-events-none">
-        <div className={`w-full max-w-xl transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) transform pointer-events-auto shadow-[0_30px_60px_-12px_rgba(0,0,0,0.15)] ${isPlayerOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 absolute'}`}>
-          <div className="bg-white/90 backdrop-blur-3xl border-x border-b border-white/50 rounded-b-[2.5rem] overflow-hidden relative">
-             <div className="h-1 w-full bg-gradient-to-r from-pink-300 via-purple-300 to-indigo-300"></div>
-             <div className="p-4 flex items-center justify-between px-8 bg-white/20">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center text-white animate-spin-slow shadow-lg">
-                      <Disc size={20} className="text-pink-400" />
-                   </div>
-                   <div className="flex flex-col leading-none">
-                     <span className="text-[10px] font-black uppercase tracking-wider text-zinc-900 leading-none">Sweet Radio</span>
-                     <span className="text-[8px] font-bold text-zinc-400 mt-1 uppercase leading-none">Cloud Active</span>
-                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                   {!isLoggedIn ? (
-                     <button onClick={() => { window.open("https://music.163.com/#/login", "_blank"); setIsLoggedIn(true); }} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-[10px] font-black italic shadow-md hover:brightness-110 transition-all">登录</button>
-                   ) : (
-                     <div className="p-1.5 bg-green-50 text-green-600 rounded-full border border-green-100 leading-none"><UserCheck size={12} /></div>
-                   )}
-                   <button onClick={() => setPlayerKey(k => k + 1)} className="p-2 text-zinc-300 hover:text-pink-500 transition-colors leading-none"><RefreshCw size={14} /></button>
-                   <button onClick={() => setIsPlayerOpen(false)} className="p-2 text-zinc-400 hover:bg-zinc-100 rounded-full leading-none"><X size={18} /></button>
-                </div>
-             </div>
-             <div className="w-full h-[110px] overflow-hidden bg-white/50">
-                <iframe key={playerKey} frameBorder="no" border="0" width="100%" height="450" src={`https://music.163.com/outchain/player?type=0&id=${data.musicConfig.playlistId}&auto=0&height=430`}></iframe>
-             </div>
-          </div>
-        </div>
-        <div className="pointer-events-auto">
-          <button onClick={() => setIsPlayerOpen(!isPlayerOpen)} className={`px-12 py-2.5 rounded-b-[2rem] shadow-2xl flex items-center gap-3 transition-all duration-500 ${isPlayerOpen ? 'bg-zinc-900 text-white' : 'bg-white text-pink-500 border-x border-b border-pink-50 font-black'}`}>
-            <Radio size={16} className={isPlayerOpen ? "" : "animate-pulse"} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">{isPlayerOpen ? "HIDE" : "RADIO"}</span>
-          </button>
-        </div>
-      </div>
+      <AnimatePresence>
+        {isIslandExpanded && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-rose-900/10 backdrop-blur-[6px] z-[90]" 
+            onClick={() => setIsIslandExpanded(false)} 
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="max-w-[1440px] mx-auto pt-8 px-6 space-y-6">
-        
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2 leading-none">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-pink-400 font-bold text-[10px] uppercase tracking-[0.3em] leading-none">
-              <Zap size={12} fill="currentColor" /> Welcome Back
-            </div>
-            <h1 className="text-6xl font-black tracking-tighter text-zinc-900 italic uppercase leading-none">SWEET SPACE</h1>
-          </div>
-          <div className="bg-white/70 backdrop-blur-md px-6 py-4 rounded-[2rem] border border-white shadow-sm flex items-center gap-6">
-             <div className="flex flex-col">
-               <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Local Time</span>
-               <span className="text-xl font-black italic text-zinc-800 leading-none">{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-             </div>
-             <div className="h-8 w-px bg-zinc-100"></div>
-             <div className="flex flex-col">
-               <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">{time.toLocaleDateString('zh-CN', { weekday: 'long' })}</span>
-               <span className="text-sm font-bold text-zinc-500 leading-none">{time.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' })}</span>
-             </div>
-          </div>
-        </header>
-
-        {/* 主布局格 - Bento Style */}
-        <div className="grid grid-cols-12 gap-6">
+      <header className="sticky top-0 z-[100] bg-white/40 backdrop-blur-3xl px-12 h-24 flex items-center">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative">
           
-          {/* 左侧大版块 (占 8 列) */}
-          <div className="col-span-12 lg:col-span-8 space-y-6">
-            
-            {/* 顶栏：纪念日 + 生理期 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="bg-zinc-900 rounded-[3rem] p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-xl min-h-[260px] group">
-                  <div className="relative z-10">
-                     <div className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 mb-4 italic leading-none">Days in Love</div>
-                     <div className="text-8xl font-black tracking-tighter leading-none group-hover:scale-105 transition-transform duration-700">{loveDays}<span className="text-xl ml-4 opacity-30 font-normal italic uppercase">Days</span></div>
-                  </div>
-                  <div className="relative z-10 flex items-center justify-between border-t border-white/5 pt-6 leading-none">
-                     <div className="flex items-center gap-3 text-xs font-bold text-zinc-400 italic leading-none">
-                        <Heart className="text-pink-500 fill-pink-500" size={14} /> Since 2022.01.12
-                     </div>
-                     <Star className="text-yellow-400 fill-yellow-400 animate-pulse" size={20} />
-                  </div>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-pink-500/10 rounded-full blur-[80px] -mr-32 -mt-32"></div>
-               </div>
+          <div className="flex items-center gap-6">
+             <div className="w-12 h-12 rounded-2xl bg-white shadow-lg flex items-center justify-center text-rose-400 border border-rose-50">
+                <Clock size={24} className="animate-pulse" />
+             </div>
+             <div className="flex flex-col">
+               <span className="text-2xl font-black tracking-tighter text-rose-600">{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+               <span className="text-[10px] text-rose-400 font-black uppercase tracking-[0.3em]">{time.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
+             </div>
+          </div>
 
-               <div className={`rounded-[3rem] p-10 text-white relative overflow-hidden flex flex-col justify-between shadow-lg min-h-[260px] transition-all duration-700 ${periodInfo.diffDays < 0 ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gradient-to-br from-rose-400 to-pink-500'}`}>
-                  <div className="flex justify-between items-start leading-none">
-                     <div className="bg-white/20 p-4 rounded-3xl backdrop-blur-md"><Activity size={24} /></div>
-                     <div className="text-right leading-none">
-                        <div className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">Vitals Monitor</div>
-                        <div className="text-lg font-black italic leading-none">{periodInfo.nextDate}</div>
-                     </div>
-                  </div>
-                  <div className="leading-none">
-                     <div className="text-5xl font-black tracking-tighter italic mb-4 leading-none">
-                        {periodInfo.diffDays > 0 ? `${periodInfo.diffDays} 天后` : periodInfo.diffDays === 0 ? "就在今天" : `已推迟 ${Math.abs(periodInfo.diffDays)}天`}
-                     </div>
-                     <div className="w-full bg-black/10 h-2.5 rounded-full overflow-hidden shadow-inner">
-                        <div className="bg-white h-full shadow-[0_0_15px_white]" style={{ width: `${periodInfo.progress}%` }}></div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            {/* 我来教你放技能 (核心更新：强制 16:9 比例) */}
-            <div className="bg-white rounded-[3.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.05)] border border-zinc-100 flex flex-col overflow-hidden group relative">
-               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#ff4655] to-transparent z-20"></div>
-               <div className="bg-white border-b border-zinc-100 p-6 px-10 flex items-center justify-between z-10 leading-none">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#ff4655] p-3 rounded-2xl text-white shadow-lg shadow-red-200 group-hover:rotate-6 transition-transform leading-none">
-                       <GraduationCap size={22} />
+          {/* 灵动岛：已更新为统一汉字首字（百、必、哔、抖） */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+            <motion.div 
+              layout
+              transition={{ type: "spring", stiffness: 400, damping: 22, mass: 1.2 }}
+              className={`relative bg-[#2D1619] shadow-[0_25px_80px_rgba(74,22,29,0.4)] flex flex-col items-center justify-center overflow-hidden border border-rose-900/20
+                ${isIslandExpanded ? 'w-[680px] h-[120px] rounded-[40px] p-8' : 'w-[200px] h-[48px] rounded-full px-6 cursor-pointer hover:scale-105 active:scale-95 group'}
+              `}
+              onClick={(e) => { e.stopPropagation(); !isIslandExpanded && setIsIslandExpanded(true); }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-rose-900/20 via-transparent to-rose-400/10 pointer-events-none" />
+              
+              <AnimatePresence mode="wait">
+                {!isIslandExpanded ? (
+                  <motion.div 
+                    key="closed"
+                    initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}
+                    className="flex items-center justify-between w-full z-10"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                      <span className="text-[13px] font-black tracking-[0.2em] text-rose-100/90 uppercase">Search Hub</span>
                     </div>
-                    <div className="leading-none">
-                      <h2 className="text-lg font-black italic uppercase tracking-widest text-zinc-900 leading-none">我来教你放技能</h2>
-                      <div className="flex items-center gap-2 mt-2 leading-none">
-                         <span className="px-2 py-0.5 bg-zinc-100 text-zinc-400 text-[8px] font-bold rounded uppercase tracking-tighter leading-none">Official 16:9 View</span>
-                         <span className="w-1 h-1 rounded-full bg-red-400 animate-pulse"></span>
-                         <p className="text-[9px] font-bold text-zinc-300 uppercase tracking-tighter leading-none">Skill Teaching System</p>
+                    <Search size={18} className="text-rose-400 group-hover:rotate-12 transition-transform" />
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="opened"
+                    initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                    className="w-full h-full flex items-center gap-6 z-10"
+                  >
+                    {/* 统一汉字首字图标组 */}
+                    <div className="flex items-center bg-black/40 backdrop-blur-md p-1.5 rounded-3xl border border-white/5 gap-2">
+                      {data.searchEngines.map(eng => (
+                        <motion.button 
+                          key={eng.id}
+                          whileHover={{ scale: 1.1, y: -5 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => { e.stopPropagation(); setSelectedEngine(eng); }}
+                          className={`w-11 h-11 flex items-center justify-center rounded-2xl transition-all relative ${selectedEngine.id === eng.id ? 'bg-white text-rose-950 shadow-[0_0_20px_rgba(255,255,255,0.4)]' : 'text-zinc-500 hover:text-white hover:bg-white/10'}`}
+                        >
+                          <span className="text-lg font-black">{eng.icon}</span>
+                          {selectedEngine.id === eng.id && (
+                             <motion.div layoutId="dock-indicator" className="absolute -bottom-1 w-1 h-1 bg-rose-400 rounded-full" />
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
+
+                    <form onSubmit={handleSearch} className="flex-1 flex items-center gap-4 relative">
+                      <div className="absolute left-5 text-rose-400/50 flex gap-1">
+                        <Sparkles size={16} className="animate-pulse" />
                       </div>
-                    </div>
-                  </div>
-                  <button onClick={() => window.open("https://val.qq.com/act/a20250110skillteach/", "_blank")} className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-zinc-400 hover:text-[#ff4655] hover:bg-red-50 hover:border-red-100 transition-all shadow-sm flex items-center gap-2 leading-none">
-                     <span className="text-[10px] font-black hidden md:block">全屏</span>
-                     <Maximize size={14} />
-                  </button>
+                      <input 
+                        autoFocus
+                        type="text" 
+                        placeholder={`在 ${selectedEngine.name} 中开启奇遇...`}
+                        className="w-full h-14 bg-white/10 rounded-[24px] pl-14 pr-16 text-lg font-bold text-white outline-none border border-white/5 focus:border-rose-400/40 transition-all placeholder:text-zinc-600 shadow-inner"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      <button type="submit" className="absolute right-2 w-10 h-10 bg-rose-500 text-white rounded-[18px] shadow-lg shadow-rose-900/40 flex items-center justify-center hover:bg-rose-400 hover:scale-110 active:scale-95 transition-all">
+                        <ArrowRight size={22} />
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <motion.div 
+                className={`absolute bottom-0 left-0 right-0 h-[3px] transition-colors duration-500 opacity-60
+                  ${isIslandExpanded ? 'opacity-100' : 'opacity-0'}
+                `}
+                style={{ backgroundColor: selectedEngine.color, boxShadow: `0 -5px 15px ${selectedEngine.color}` }}
+              />
+            </motion.div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setIsPlayerOpen(!isPlayerOpen)} 
+              className={`p-4 rounded-[20px] transition-all relative ${isPlayerOpen ? 'bg-rose-500 text-white shadow-xl shadow-rose-200' : 'bg-white border border-rose-100 text-rose-400 hover:bg-rose-50'}`}
+            >
+               <Music size={22} className={isPlayerOpen ? 'animate-bounce' : ''} />
+               {!isPlayerOpen && <span className="absolute -top-1 -right-1 flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span></span>}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* 音乐面板 */}
+      <AnimatePresence>
+        {isPlayerOpen && (
+          <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="fixed bottom-12 right-12 z-[110] w-[420px] bg-white/80 backdrop-blur-3xl border-4 border-white rounded-[40px] shadow-2xl overflow-hidden ring-1 ring-rose-100">
+            <div className="p-8 flex items-center justify-between bg-rose-50/40">
+               <div className="flex items-center gap-5">
+                 <div className="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-rose-200 animate-spin-slow">
+                   <Disc size={28} />
+                 </div>
+                 <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest">Now Streaming</span>
+                    <span className="text-lg font-black text-rose-700 tracking-tight">专属心动频道</span>
+                 </div>
                </div>
-               
-               {/* 强制 16:9 的视频容器 */}
-               <div className="w-full aspect-video bg-[#121212] relative overflow-hidden">
-                  <iframe 
-                    src="https://val.qq.com/act/a20250110skillteach/" 
-                    className="absolute inset-0 w-full h-full border-none" 
-                    allow="clipboard-write; fullscreen" 
-                    title="技能教学" 
-                  />
-                  <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+               <button onClick={() => setIsPlayerOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white rounded-full text-rose-300 hover:text-rose-500 hover:rotate-90 transition-all"><X size={20} /></button>
+            </div>
+            <div className="h-[180px] bg-white shadow-inner"><iframe frameBorder="no" border="0" width="100%" height="450" src={`https://music.163.com/outchain/player?type=0&id=${data.musicConfig.playlistId}&auto=0&height=430`}></iframe></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="max-w-7xl mx-auto px-12 pt-16 space-y-16 relative z-10">
+        
+        {/* 数据面板 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <AppleTiltCard className="lg:col-span-8 bg-white/60 rounded-[50px] p-16 flex flex-col justify-between shadow-2xl shadow-rose-200/20 border border-white group overflow-hidden min-h-[460px]">
+            <div className="relative z-10">
+               <div className="inline-flex items-center gap-3 px-6 py-2.5 bg-rose-50 text-rose-500 text-[11px] font-black rounded-full border border-rose-100 uppercase tracking-[0.2em] shadow-sm italic">❤ Synchronized Timeline</div>
+               <div className="flex items-baseline gap-10 mt-16">
+                  <h2 className="text-[11rem] font-black tracking-tighter italic leading-none text-rose-600 drop-shadow-2xl">{loveDays}</h2>
+                  <span className="text-5xl font-black text-rose-300 italic opacity-60">DAYS</span>
                </div>
             </div>
+            <div className="mt-16 flex gap-8 overflow-x-auto pb-8 no-scrollbar relative z-10">
+              {dynamicDates.map((d, i) => (
+                <motion.div key={i} whileHover={{ y: -10, scale: 1.05 }} className="flex-shrink-0 bg-white/90 backdrop-blur-md px-12 py-8 rounded-[35px] border border-rose-50 shadow-xl shadow-rose-100/30 flex items-center gap-6 transition-all">
+                  <div className="text-rose-500 bg-rose-50 p-5 rounded-2xl shadow-inner">{d.icon}</div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] text-rose-300 font-black uppercase tracking-widest">{d.name}</span>
+                    <span className="text-2xl font-black mt-1 text-rose-900 tracking-tighter">T-{d.days} <span className="text-sm">天</span></span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-rose-200/20 blur-[130px] rounded-full group-hover:bg-rose-300/30 transition-colors duration-1000"></div>
+          </AppleTiltCard>
+
+          <div className="lg:col-span-4 flex flex-col gap-12">
+            <AppleTiltCard className={`rounded-[45px] p-12 flex flex-col justify-between shadow-2xl border-4 border-white transition-all duration-700 min-h-[240px] ${periodInfo.diff < 0 ? 'bg-rose-500 text-white' : 'bg-rose-50 text-rose-500 shadow-rose-200/50'}`}>
+               <div className="flex justify-between items-start">
+                  <div className={`p-5 rounded-3xl shadow-lg ${periodInfo.diff < 0 ? 'bg-white/20' : 'bg-white text-rose-500'}`}><Activity size={30} /></div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-black opacity-60 uppercase tracking-widest italic">Forecast</span>
+                    <div className="text-2xl font-black mt-2 italic">{periodInfo.date}</div>
+                  </div>
+               </div>
+               <div>
+                  <div className="text-5xl font-black tracking-tighter mb-8 italic leading-none">{periodInfo.diff > 0 ? `${periodInfo.diff} Days` : "Attention"}</div>
+                  <div className="w-full h-4 bg-black/5 rounded-full overflow-hidden p-1 shadow-inner ring-1 ring-white/20">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${periodInfo.progress}%` }} className={`h-full rounded-full ${periodInfo.diff < 0 ? 'bg-white shadow-[0_0_15px_white]' : 'bg-rose-400 shadow-[0_0_15px_#fb7185]'}`}></motion.div>
+                  </div>
+               </div>
+            </AppleTiltCard>
+            
+            <AppleTiltCard className="bg-amber-50 rounded-[45px] p-12 border-4 border-white flex items-center justify-between shadow-2xl shadow-amber-200/30 overflow-hidden relative min-h-[190px]">
+               <div className="relative z-10">
+                  <span className="text-[11px] font-black text-amber-600/50 mb-4 block uppercase tracking-[0.3em] italic">Pick One For You</span>
+                  <div className={`text-4xl font-black text-amber-900 italic tracking-tighter transition-all ${isSpinning ? 'blur-xl opacity-30 scale-90 rotate-2' : ''}`}>
+                    {randomFood}
+                  </div>
+               </div>
+               <motion.button 
+                whileHover={{ rotate: 360, scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={spinFood} 
+                className={`relative z-10 w-20 h-20 rounded-[28px] transition-all shadow-2xl flex items-center justify-center ${isSpinning ? 'bg-amber-400 text-white' : 'bg-white text-amber-500 hover:shadow-amber-200'}`}
+               >
+                 <Coffee size={36} />
+               </motion.button>
+               <div className="absolute -bottom-10 -left-10 text-amber-500/5 rotate-12 pointer-events-none"><UtensilsCrossed size={220} /></div>
+            </AppleTiltCard>
           </div>
-
-          {/* 右侧侧边栏 (占 4 列) */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-             
-             {/* 准星同步 */}
-             <div className="bg-white rounded-[3rem] shadow-sm border border-zinc-100 flex flex-col overflow-hidden h-[400px] group relative leading-none">
-                <div className="p-6 border-b border-zinc-50 flex items-center justify-between bg-zinc-50/30 leading-none">
-                   <div className="flex items-center gap-3 leading-none">
-                     <div className="bg-[#ff4655] p-2.5 rounded-xl text-white shadow-md shadow-red-100 leading-none"><Crosshair size={18} /></div>
-                     <span className="font-black italic uppercase text-sm tracking-widest text-zinc-900 leading-none">准星中枢</span>
-                   </div>
-                   <ShieldCheck size={16} className="text-zinc-200" />
-                </div>
-                <div className="flex-1 bg-[#121212]">
-                   <iframe src="https://val.isoox.cn/crosshair" className="w-full h-full border-none opacity-90 group-hover:opacity-100 transition-opacity" title="准星查询" />
-                </div>
-             </div>
-
-             {/* 饮食决策 */}
-             <div className="bg-[#fffbeb] rounded-[3rem] p-8 border border-yellow-100 flex items-center justify-between shadow-sm relative overflow-hidden group leading-none">
-                <div className="relative z-10 leading-none">
-                   <div className="text-[10px] font-black text-yellow-600/60 uppercase tracking-widest italic mb-3 leading-none">Decision Maker</div>
-                   <div className={`text-3xl font-black text-yellow-900 italic tracking-tighter transition-all duration-300 ${isSpinning ? 'blur-sm scale-95 opacity-50' : ''} leading-none`}>{randomFood}</div>
-                </div>
-                <button onClick={spinFood} disabled={isSpinning} className={`relative z-10 p-5 rounded-2xl shadow-xl transition-all active:scale-90 ${isSpinning ? 'bg-yellow-200 text-white animate-spin' : 'bg-white text-yellow-500 hover:shadow-yellow-100 hover:shadow-2xl'}`}>
-                   <UtensilsCrossed size={24} />
-                </button>
-                <div className="absolute -bottom-4 -left-4 text-yellow-500/5 rotate-12"><UtensilsCrossed size={120} /></div>
-             </div>
-
-             {/* 小众百宝箱 */}
-             <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-zinc-100 space-y-6 leading-none">
-                <div className="flex items-center gap-3 border-b border-zinc-50 pb-4 leading-none">
-                   <Box className="text-zinc-300" size={18} />
-                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 leading-none">Treasure Chest</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                   {data.treasureChest.map((item, idx) => (
-                     <a key={idx} href={item.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center p-4 rounded-2xl bg-zinc-50 hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-zinc-100 group/tile no-underline">
-                        <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center text-white mb-2 shadow-sm group-hover/tile:rotate-6 transition-transform`}>
-                          {item.icon}
-                        </div>
-                        <span className="text-[8px] font-black text-zinc-500 uppercase tracking-tighter text-center line-clamp-1">{item.name}</span>
-                     </a>
-                   ))}
-                </div>
-             </div>
-          </div>
-
-          {/* 底部全宽：应用门户 */}
-          <div className="col-span-12 bg-white rounded-[4rem] p-10 shadow-sm border border-zinc-100 relative overflow-hidden group">
-             <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6 leading-none">
-                <div className="flex items-center gap-5 leading-none">
-                   <div className="bg-zinc-900 p-4 rounded-3xl text-white shadow-xl group-hover:rotate-3 transition-transform duration-500"><LayoutGrid size={28} /></div>
-                   <div className="leading-none">
-                     <h2 className="text-3xl font-black tracking-tighter italic uppercase text-zinc-900 leading-none">App Launchpad</h2>
-                     <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-2 italic leading-none">快速访问您的核心生产力入口</p>
-                   </div>
-                </div>
-                <div className="relative group/search">
-                   <div className="absolute inset-y-0 left-5 flex items-center text-zinc-300 group-focus-within/search:text-pink-400 transition-colors"><Search size={18} /></div>
-                   <input 
-                      type="text" 
-                      placeholder="SEARCH APPS..." 
-                      className="bg-zinc-50 border-none text-[11px] font-black rounded-2xl pl-12 pr-6 py-4 w-full md:w-[320px] focus:ring-4 focus:ring-pink-500/10 focus:bg-white transition-all shadow-inner tracking-widest" 
-                      value={appSearch} 
-                      onChange={(e) => setAppSearch(e.target.value)}
-                   />
-                </div>
-             </div>
-
-             <div className="max-h-[460px] overflow-y-auto pr-4 custom-scrollbar-v2">
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-6 pb-6 px-2">
-                   {filteredApps.map((app, idx) => (
-                     <a key={idx} href={app.url} target="_blank" rel="noreferrer" className="group/app flex flex-col items-center no-underline">
-                       <div className={`w-16 h-16 ${app.color} rounded-[1.8rem] flex items-center justify-center text-white font-black text-xl shadow-md group-hover/app:shadow-xl group-hover/app:-translate-y-2 transition-all duration-500 relative overflow-hidden`}>
-                         {app.name.charAt(0)}
-                         <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/app:opacity-100 transition-opacity"></div>
-                       </div>
-                       <div className="mt-4 text-center leading-none">
-                         <span className="text-[10px] font-black text-zinc-800 uppercase tracking-tighter block leading-none">{app.name}</span>
-                         <span className="text-[7px] font-bold text-zinc-300 uppercase tracking-widest leading-none mt-1.5">{app.cat}</span>
-                       </div>
-                     </a>
-                   ))}
-                </div>
-             </div>
-          </div>
-
         </div>
 
-        <footer className="pt-12 pb-8 flex flex-col items-center gap-4 opacity-20 leading-none">
-          <p className="text-[10px] font-black uppercase tracking-[2em] ml-[2em] text-zinc-400 leading-none">Archive Sync System</p>
-        </footer>
+        {/* 教学中心：16:9 极清显示 */}
+        <div className="bg-white/70 rounded-[60px] border-4 border-white shadow-2xl overflow-hidden group">
+           <div className="flex flex-col md:flex-row items-center justify-between p-12 px-16 border-b border-rose-50 bg-white/40">
+              <div className="flex items-center gap-16">
+                 {['skill', 'crosshair'].map(tab => (
+                   <button key={tab} onClick={() => setActiveTab(tab)} className={`relative py-4 text-xl font-black transition-all tracking-tighter italic ${activeTab === tab ? 'text-rose-600 scale-110' : 'text-rose-200 hover:text-rose-400'}`}>
+                      {tab === 'skill' ? '技能特调馆' : '准星藏品室'}
+                      {activeTab === tab && <motion.div layoutId="tab-pill-large" className="absolute -bottom-1 left-0 w-full h-2 bg-rose-500 rounded-full shadow-[0_0_15px_#fb7185]" />}
+                   </button>
+                 ))}
+              </div>
+              <div className="flex items-center gap-8 mt-8 md:mt-0">
+                 <div className="px-6 py-3 bg-emerald-50 text-emerald-600 text-xs font-black rounded-full border border-emerald-100 flex items-center gap-3 shadow-sm">
+                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_#34d399]"></div> 
+                   STABLE LINK
+                 </div>
+                 <button onClick={() => window.open(activeTab === 'skill' ? "https://val.qq.com/act/a20250110skillteach/" : "https://www.vcrdb.net/", "_blank")} className="p-5 bg-white rounded-3xl text-rose-300 hover:text-rose-600 transition-all hover:scale-110 shadow-lg ring-1 ring-rose-50"><Maximize size={24} /></button>
+              </div>
+           </div>
+           <div className="w-full bg-[#0A0A0A] relative shadow-2xl">
+              <AnimatePresence mode="wait">
+                <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.6 }} className="w-full">
+                  <div className={activeTab === 'skill' ? "aspect-video" : "h-[960px]"}>
+                    <iframe src={activeTab === 'skill' ? "https://val.qq.com/act/a20250110skillteach/" : "https://www.vcrdb.net/"} className="w-full h-full border-none" allow="clipboard-write; fullscreen" />
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+           </div>
+        </div>
 
-      </div>
+        {/* 底部导航 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 pb-12">
+           <div className="lg:col-span-4 bg-white/70 rounded-[50px] p-14 border-4 border-white shadow-2xl flex flex-col gap-12">
+              <div className="flex items-center justify-between border-b border-rose-50 pb-12">
+                <h3 className="text-2xl font-black text-rose-800 flex items-center gap-5 uppercase tracking-tighter italic">
+                  <Palette size={30} className="text-rose-400" /> Toolbox
+                </h3>
+                <div className="w-3 h-3 rounded-full bg-rose-400 animate-ping"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                 {data.treasureChest.map((item, idx) => (
+                   <motion.a whileHover={{ scale: 1.05, y: -10 }} key={idx} href={item.url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center p-10 rounded-[40px] bg-rose-50/30 border border-white hover:bg-white hover:shadow-2xl hover:shadow-rose-100 transition-all text-center no-underline shadow-sm ring-1 ring-rose-50/50">
+                      <div className={`w-16 h-16 ${item.color} rounded-[22px] flex items-center justify-center mb-5 shadow-2xl`}>{item.icon}</div>
+                      <span className="text-xs font-black uppercase tracking-widest text-rose-900/60">{item.name}</span>
+                   </motion.a>
+                 ))}
+              </div>
+           </div>
+
+           <div className="lg:col-span-8 bg-white/70 rounded-[60px] p-16 border-4 border-white shadow-2xl overflow-hidden relative group">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-24 gap-12">
+                <div className="flex items-center gap-10">
+                   <div className="bg-[#2D1619] p-6 rounded-[30px] text-white shadow-2xl rotate-[-8deg] group-hover:rotate-0 transition-all duration-700 shadow-rose-900/30">
+                     <Grid3X3 size={36} />
+                   </div>
+                   <div className="leading-none">
+                      <h2 className="text-5xl font-black tracking-tighter uppercase italic text-rose-900">Portal</h2>
+                      <p className="text-xs text-rose-300 font-black mt-4 uppercase tracking-[0.4em]">Integrated Hub</p>
+                   </div>
+                </div>
+                <div className="relative group/search max-w-sm w-full">
+                   <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-rose-200 group-focus-within/search:text-rose-500 transition-colors" size={24} />
+                   <input type="text" placeholder="查找已同步的资源..." className="bg-white border-2 border-rose-50 text-base font-black rounded-[35px] pl-20 pr-10 py-7 w-full focus:bg-white focus:ring-[15px] focus:ring-rose-500/5 focus:border-rose-200 transition-all outline-none shadow-inner" value={appSearch} onChange={(e) => setAppSearch(e.target.value)}/>
+                </div>
+              </div>
+              
+              <div className="max-h-[550px] overflow-y-auto pr-10 custom-scrollbar-v2 pb-20">
+                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-x-12 gap-y-20">
+                    {filteredApps.map((app, idx) => (
+                      <motion.a whileHover={{ y: -18, scale: 1.2 }} key={idx} href={app.url} target="_blank" rel="noreferrer" className="flex flex-col items-center group/item no-underline">
+                         <div className={`w-24 h-24 ${app.color} rounded-[32px] flex items-center justify-center text-white font-black text-4xl shadow-2xl transition-all duration-500 relative overflow-hidden group-hover/item:shadow-rose-300/40 border-4 border-white/20 group-hover/item:rotate-[-10deg]`}>
+                           {app.name.charAt(0)}
+                           <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
+                         </div>
+                         <div className="mt-8 text-center leading-none">
+                            <span className="text-[17px] font-black text-rose-950 tracking-tighter group-hover/item:text-rose-500 transition-colors block">{app.name}</span>
+                            <span className="text-[10px] font-bold text-rose-200 uppercase tracking-widest mt-3 block">{app.cat}</span>
+                         </div>
+                      </motion.a>
+                    ))}
+                 </div>
+                 {filteredApps.length === 0 && <div className="py-32 text-center text-rose-200 font-black uppercase tracking-[0.5em] opacity-50">Empty Archive</div>}
+              </div>
+           </div>
+        </div>
+      </main>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        .custom-scrollbar-v2::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar-v2::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar-v2::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar-v2::-webkit-scrollbar-thumb { background: #f472b6; border-radius: 20px; }
-        
+        .custom-scrollbar-v2::-webkit-scrollbar-thumb { background: #FFDDE1; border-radius: 20px; border: 3px solid transparent; background-clip: content-box; }
+        .custom-scrollbar-v2::-webkit-scrollbar-thumb:hover { background: #FB7185; }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-spin-slow { animation: spin-slow 15s linear infinite; }
-        
-        body { background-color: #f8f9fc; }
-        .no-underline { text-decoration: none !important; }
+        .animate-spin-slow { animation: spin-slow 18s linear infinite; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { background-color: #FFF0F3; perspective: 3000px; overflow-x: hidden; }
+        * { -webkit-font-smoothing: antialiased; }
+        input::placeholder { color: #F8BBCC; opacity: 1; font-weight: 700; }
+        .shadow-inner { box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); }
       `}} />
     </div>
   );
