@@ -4,11 +4,11 @@ import {
   ChevronRight, Navigation, Cake, Target, Shield, ExternalLink,
   Activity, AlertCircle, Crosshair, Music, X, RefreshCw, Disc,
   Film, Book, Keyboard, FileType, LayoutGrid, Search, Heart, ArrowRight,
-  Maximize, Coffee, Palette, Grid3X3, Github, Send
+  Maximize, Coffee, Palette, Grid3X3, Github, Send, Box
 } from 'lucide-react';
 
 /**
- * 极简版文件图标（手动实现以防 Lucide 版本兼容问题）
+ * 极简版文件图标
  */
 const FileTextIcon = ({ size }) => (
   <div style={{ width: size, height: size, border: '2px solid currentColor', borderRadius: '2px', position: 'relative', display: 'inline-block' }}>
@@ -41,20 +41,69 @@ const INITIAL_DATA = {
     { name: "生活百科", url: "https://zh.wikihow.com/", icon: <Book size={20} />, color: "bg-emerald-50 text-emerald-500 shadow-emerald-100/50" },
     { name: "快捷键", url: "https://hotkeycheatsheet.com/zh", icon: <Keyboard size={20} />, color: "bg-blue-50 text-blue-500 shadow-blue-100/50" },
     { name: "格式转换", url: "https://www.aconvert.com/cn/", icon: <FileType size={20} />, color: "bg-orange-50 text-orange-500 shadow-orange-100/50" },
-    { name: "思维导图", url: "https://wanglin2.github.io/mind-map/#/", icon: <LayoutGrid size={20} />, color: "bg-purple-50 text-purple-500 shadow-purple-100/50" },
+    { name: "工具大杂烩", url: "http://www.magicalbox.cn", icon: <Box size={20} />, color: "bg-purple-50 text-purple-500 shadow-purple-100/50" },
     { name: "PDF工具", url: "https://tools.pdf24.org/zh/", icon: <FileTextIcon size={20} />, color: "bg-rose-50 text-rose-500 shadow-rose-100/50" },
   ],
 
   appPortal: [
-    { name: "微信", cat: "社交", url: "https://weixin.qq.com/", color: "bg-emerald-400" },
-    { name: "微博", cat: "社交", url: "https://weibo.com/", color: "bg-red-400" },
-    { name: "小红书", cat: "社交", url: "https://www.xiaohongshu.com/", color: "bg-rose-400" },
-    { name: "知乎", cat: "社区", url: "https://www.zhihu.com/", color: "bg-blue-500" },
-    { name: "B站", cat: "娱乐", url: "https://www.bilibili.com/", color: "bg-pink-300" },
-    { name: "网易云", cat: "音乐", url: "https://music.163.com/", color: "bg-red-500" },
-    { name: "ChatGPT", cat: "智能", url: "https://chatgpt.com/", color: "bg-teal-500" },
-    { name: "飞书", cat: "协作", url: "https://www.feishu.cn/", color: "bg-blue-400" },
-    { name: "美团", cat: "生活", url: "https://www.meituan.com", color: "bg-yellow-400" },
+    // 社交社区
+    { name: "微信", cat: "社交", url: "https://weixin.qq.com/", color: "bg-emerald-500" },
+    { name: "QQ", cat: "社交", url: "https://im.qq.com/", color: "bg-blue-400" },
+    { name: "微博", cat: "社交", url: "https://weibo.com/", color: "bg-red-500" },
+    { name: "小红书", cat: "社区", url: "https://www.xiaohongshu.com/", color: "bg-rose-500" },
+    { name: "知乎", cat: "社区", url: "https://www.zhihu.com/", color: "bg-blue-600" },
+    { name: "豆瓣", cat: "社区", url: "https://www.douban.com/", color: "bg-green-700" },
+    { name: "百度贴吧", cat: "社区", url: "https://tieba.baidu.com/", color: "bg-blue-500" },
+    { name: "即刻", cat: "社区", url: "https://ruguoapp.com/", color: "bg-yellow-400" },
+    // 影音娱乐
+    { name: "B站", cat: "视频", url: "https://www.bilibili.com/", color: "bg-pink-400" },
+    { name: "抖音", cat: "短视频", url: "https://www.douyin.com/", color: "bg-zinc-900" },
+    { name: "快手", cat: "短视频", url: "https://www.kuaishou.com/", color: "bg-orange-500" },
+    { name: "网易云", cat: "音乐", url: "https://music.163.com/", color: "bg-red-600" },
+    { name: "QQ音乐", cat: "音乐", url: "https://y.qq.com/", color: "bg-emerald-400" },
+    { name: "Spotify", cat: "音乐", url: "https://www.spotify.com/", color: "bg-green-500" },
+    { name: "爱奇艺", cat: "视频", url: "https://www.iqiyi.com/", color: "bg-green-500" },
+    { name: "腾讯视频", cat: "视频", url: "https://v.qq.com/", color: "bg-blue-500" },
+    { name: "优酷", cat: "视频", url: "https://www.youku.com/", color: "bg-blue-400" },
+    { name: "芒果TV", cat: "视频", url: "https://www.mgtv.com/", color: "bg-orange-400" },
+    // 购物潮流
+    { name: "淘宝", cat: "购物", url: "https://www.taobao.com/", color: "bg-orange-500" },
+    { name: "京东", cat: "购物", url: "https://www.jd.com/", color: "bg-red-600" },
+    { name: "拼多多", cat: "购物", url: "https://www.pinduoduo.com/", color: "bg-red-500" },
+    { name: "得物", cat: "潮流", url: "https://www.dewu.com/", color: "bg-zinc-800" },
+    { name: "识货", cat: "潮流", url: "https://www.shihuo.cn/", color: "bg-cyan-500" },
+    { name: "闲鱼", cat: "购物", url: "https://www.goofish.com/", color: "bg-yellow-400" },
+    { name: "唯品会", cat: "购物", url: "https://www.vip.com/", color: "bg-pink-500" },
+    // 生活旅行
+    { name: "美团", cat: "生活", url: "https://www.meituan.com/", color: "bg-yellow-500" },
+    { name: "饿了么", cat: "生活", url: "https://www.ele.me/", color: "bg-sky-400" },
+    { name: "携程", cat: "旅行", url: "https://www.ctrip.com/", color: "bg-blue-800" },
+    { name: "高德地图", cat: "导航", url: "https://www.amap.com/", color: "bg-sky-500" },
+    { name: "百度地图", cat: "导航", url: "https://map.baidu.com/", color: "bg-blue-600" },
+    { name: "去哪儿", cat: "旅行", url: "https://www.qunar.com/", color: "bg-blue-400" },
+    { name: "大众点评", cat: "生活", url: "https://www.dianping.com/", color: "bg-orange-500" },
+    { name: "12306", cat: "出行", url: "https://www.12306.cn/", color: "bg-blue-600" },
+    { name: "Keep", cat: "健康", url: "https://www.gotokeep.com/", color: "bg-zinc-700" },
+    { name: "下厨房", cat: "生活", url: "https://www.xiachufang.com/", color: "bg-red-400" },
+    // 办公智能
+    { name: "ChatGPT", cat: "AI", url: "https://chatgpt.com/", color: "bg-teal-600" },
+    { name: "DeepSeek", cat: "AI", url: "https://www.deepseek.com/", color: "bg-blue-900" },
+    { name: "Claude", cat: "AI", url: "https://claude.ai/", color: "bg-orange-100 text-orange-900" },
+    { name: "Notion", cat: "办公", url: "https://www.notion.so/", color: "bg-zinc-900" },
+    { name: "WPS", cat: "办公", url: "https://www.wps.cn/", color: "bg-rose-600" },
+    { name: "飞书", cat: "协作", url: "https://www.feishu.cn/", color: "bg-blue-500" },
+    { name: "钉钉", cat: "协作", url: "https://www.dingtalk.com/", color: "bg-blue-600" },
+    { name: "石墨文档", cat: "协作", url: "https://shimo.im/", color: "bg-zinc-600" },
+    { name: "Canva", cat: "设计", url: "https://www.canva.cn/", color: "bg-purple-500" },
+    // 科技存储
+    { name: "GitHub", cat: "科技", url: "https://github.com/", color: "bg-zinc-800" },
+    { name: "百度网盘", cat: "存储", url: "https://pan.baidu.com/", color: "bg-blue-600" },
+    { name: "夸克网盘", cat: "存储", url: "https://pan.quark.cn/", color: "bg-blue-500" },
+    { name: "阿里云盘", cat: "存储", url: "https://www.aliyundrive.com/", color: "bg-purple-600" },
+    { name: "华为", cat: "科技", url: "https://www.huawei.com/", color: "bg-red-600" },
+    { name: "小米", cat: "科技", url: "https://www.mi.com/", color: "bg-orange-600" },
+    { name: "Vercel", cat: "开发", url: "https://vercel.com/", color: "bg-zinc-900" },
+    { name: "StackOverflow", cat: "开发", url: "https://stackoverflow.com/", color: "bg-orange-500" }
   ]
 };
 
@@ -71,7 +120,7 @@ export default function App() {
   const [selectedEngine, setSelectedEngine] = useState(INITIAL_DATA.searchEngines[0]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 粒子效果
+  // 模拟樱花星尘粒子
   const [particles, setParticles] = useState([]);
   
   useEffect(() => {
@@ -138,7 +187,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#FFF0F3] text-[#5A5A5A] font-sans overflow-x-hidden relative pb-20 transition-colors duration-700">
       
-      {/* 粒子效果渲染 */}
+      {/* 粒子效果 */}
       {particles.map(p => (
         <div key={p.id} className="particle pointer-events-none fixed z-[999] text-lg opacity-0" style={{ left: p.x, top: p.y }}>
           {p.char}
@@ -164,6 +213,7 @@ export default function App() {
              </div>
           </div>
 
+          {/* 纯 CSS 炫技灵动岛 */}
           <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
             <div 
               className={`relative bg-gradient-to-b from-[#3D262A] to-[#2D1619] shadow-[0_20px_50px_rgba(61,38,42,0.3)] flex flex-col items-center justify-center overflow-hidden border border-white/5 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]
@@ -320,8 +370,8 @@ export default function App() {
                  ))}
               </div>
               <div className="flex items-center gap-6 mt-6 md:mt-0">
-                 <div className="px-5 py-2.5 bg-emerald-50 text-emerald-500 text-[10px] font-black rounded-full border border-emerald-50 flex items-center gap-2 shadow-sm">
-                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div> 
+                 <div className="px-5 py-2.5 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-full border border-emerald-50 flex items-center gap-2 shadow-sm">
+                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div> 
                    STABLE
                  </div>
                  <button onClick={() => window.open(activeTab === 'skill' ? "https://val.qq.com/act/a20250110skillteach/" : "https://www.vcrdb.net/", "_blank")} className="p-4 bg-white/80 rounded-2xl text-rose-200 hover:text-rose-500 transition-all shadow-sm"><Maximize size={20} /></button>
@@ -329,7 +379,7 @@ export default function App() {
            </div>
            <div className="w-full bg-[#0F0F0F] relative shadow-2xl min-h-[500px]">
               <div key={activeTab} className="w-full animate-fade-in">
-                <div className={activeTab === 'skill' ? "aspect-video" : "h-[900px]"}>
+                <div className={activeTab === 'skill' ? "aspect-video" : "h-[850px]"}>
                   <iframe src={activeTab === 'skill' ? "https://val.qq.com/act/a20250110skillteach/" : "https://www.vcrdb.net/"} className="w-full h-full border-none" allow="clipboard-write; fullscreen" />
                 </div>
               </div>
@@ -338,6 +388,7 @@ export default function App() {
 
         {/* 底部导航 */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-10">
+           {/* 修改后的 Toolbox */}
            <div className="lg:col-span-4 bg-white/70 rounded-[45px] p-12 border-2 border-white shadow-xl flex flex-col gap-10">
               <div className="flex items-center justify-between border-b border-rose-50 pb-10">
                 <h3 className="text-xl font-black text-rose-800 flex items-center gap-4 uppercase tracking-tighter italic">
@@ -371,7 +422,7 @@ export default function App() {
                 </div>
               </div>
               
-              <div className="max-h-[500px] overflow-y-auto pr-8 custom-scrollbar-v2 pb-16">
+              <div className="max-h-[550px] overflow-y-auto pr-8 custom-scrollbar-v2 pb-16">
                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-x-10 gap-y-16">
                     {filteredApps.map((app, idx) => (
                       <a key={idx} href={app.url} target="_blank" rel="noreferrer" className="flex flex-col items-center group/item no-underline">
@@ -386,6 +437,11 @@ export default function App() {
                       </a>
                     ))}
                  </div>
+                 {filteredApps.length === 0 && (
+                   <div className="py-20 text-center text-rose-200 font-bold opacity-50 uppercase tracking-widest">
+                     No App Found
+                   </div>
+                 )}
               </div>
            </div>
         </div>
